@@ -179,7 +179,7 @@ contract CarNFT_Trade is CarNFT{
         // 보낸 클레이가 가격보다 적으면 revert
         require(msg.value >= _carDetails[_tokenId].price, "Not enough KLAY to buy a car");
         (bool success, ) = payable(address(this)).call{value:msg.value}("");
-        require(success, "Failed to send ether to Contract");
+        require(success, "Failed to send KLAY to Contract");
     
         _transactions[_tokenId].buyer = msg.sender;
         _transactions[_tokenId].state = Status.Reserved;
