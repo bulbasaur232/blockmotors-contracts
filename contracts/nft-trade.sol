@@ -167,9 +167,14 @@ contract CarNFT_Trade is CarNFT{
         require(isTrading(_tokenId), "This car is not trading.");
         require(msg.sender == _transactions[_tokenId].buyer, "The caller is not the buyer.");
 
+        // 차량의 상태를 Registered로 바꿈
         _transactions[_tokenId].timestamp = _carDetails[_tokenId].registDate;
         _transactions[_tokenId].buyer = address(0);
         _transactions[_tokenId].state = Status.Registered;
+
+        if(ownerOf(_tokenId) == address(this)){
+            safeTransferFrom(address(this), _transactions[_tokenId].seller, _tokenId);
+        }
     }
 
     // 구매자가 클레이를 지불하여 구매 요청을 보내는 함수
@@ -177,7 +182,7 @@ contract CarNFT_Trade is CarNFT{
         // 이미 거래중이면 revert
         require(isTrading(_tokenId) , "This car is currently being traded");
         // 보낸 클레이가 가격보다 적으면 revert
-        require(msg.value >= _carDetails[_tokenId].price, "Not enough KLAY to buy a car");
+        require(msg.value >= _carDetails[_tokenId].price, "Not enough KLAY to buy this car");
         (bool success, ) = payable(address(this)).call{value:msg.value}("");
         require(success, "Failed to send KLAY to Contract");
     
@@ -192,7 +197,7 @@ contract CarNFT_Trade is CarNFT{
     // 판매자가 NFT를 CA로 전송하여 판매 승인하는 함수
     function sendCar(uint _tokenId) public onlyNFTOwner(_tokenId) registeredForSale(_tokenId) correctState(_tokenId, Status.Reserved) {
         // nft를 판매자가 ca에게 전송
-        safeTransferFrom(msg.sender, address(this), _tokenId);
+        safeTransferFrom(_transactions[_tokenId].seller, address(this), _tokenId);
         _transactions[_tokenId].state = Status.Sended;
         _transactions[_tokenId].timestamp = block.timestamp;
 
@@ -203,7 +208,7 @@ contract CarNFT_Trade is CarNFT{
     // 구매자가 최종 구매 승인하는 함수
     function confirmBuying(uint _tokenId) public registeredForSale(_tokenId) correctState(_tokenId, Status.Sended) {
         // msg.sender가 구매자가 아니면 revert 
-        require(msg.sender == _transactions[_tokenId].buyer, "Caller is not the buyer of this car");
+        require(msg.sender == _transactions[_tokenId].buyer, "Caller is not the buyer of the car");
 
         // 구매 승인 기한 일주일 지나면 구매 취소
         uint nowDate = block.timestamp;
