@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./nft-generator.sol";
 
-contract CarNFT_Trade is CarNFT{
+contract CarNFT_Trade is CarNFT, IKIP17Receiver{
 
     // 1. 판매 등록 이벤트
     event registerSale(uint timestamp, uint tokenId, address seller);
@@ -15,8 +15,8 @@ contract CarNFT_Trade is CarNFT{
     event approveBuying(uint timestamp, uint tokenId, address seller);
     // 5. 거래 완료 이벤트
     event transactionCompleted(uint timestamp, uint tokenId, address seller, address buyer);
-    // 6. 구매승인기한 초과로 거래 취소 이벤트
-    event approvalOverdue(uint timestamp, uint tokenId, address buyer);
+    // 6. 거래 취소 이벤트
+    event cancelPurchase(uint timestamp, uint tokenId, address buyer);
     
 
     mapping(uint => Detail) private _carDetails;               // id-세부정보 매핑
@@ -116,7 +116,7 @@ contract CarNFT_Trade is CarNFT{
         string memory _warranty,     
         uint _price,          
         uint _mileage        
-    ) public onlyNFTOwner(_tokenId) mintedNFT(_tokenId) {
+    ) public mintedNFT(_tokenId) onlyNFTOwner(_tokenId){
 
         // CA에게 차량 approve
         approve(address(this), _tokenId);
@@ -161,7 +161,7 @@ contract CarNFT_Trade is CarNFT{
 
     /*
      * 구매를 취소하는 함수
-     * 구매자가 취소 or 구매 승인 기한 지났을 경우 호출
+     * 구매자가 호출 or 구매 승인 기한 지났을 경우 호출
      */
     function cancelCarPurchase(uint _tokenId) public {
         require(isTrading(_tokenId), "This car is not trading.");
@@ -175,6 +175,8 @@ contract CarNFT_Trade is CarNFT{
         if(ownerOf(_tokenId) == address(this)){
             safeTransferFrom(address(this), _transactions[_tokenId].seller, _tokenId);
         }
+
+        emit cancelPurchase(block.timestamp, _tokenId, msg.sender);
     }
 
     // 구매자가 클레이를 지불하여 구매 요청을 보내는 함수
@@ -183,6 +185,8 @@ contract CarNFT_Trade is CarNFT{
         require(isTrading(_tokenId) , "This car is currently being traded");
         // 보낸 클레이가 가격보다 적으면 revert
         require(msg.value >= _carDetails[_tokenId].price, "Not enough KLAY to buy this car");
+        // 판매자가 구매 요청 보내면 revert
+        require(msg.sender != _transactions[_tokenId].seller, "Seller cannot send purchase requisition");
         (bool success, ) = payable(address(this)).call{value:msg.value}("");
         require(success, "Failed to send KLAY to Contract");
     
@@ -214,7 +218,6 @@ contract CarNFT_Trade is CarNFT{
         uint nowDate = block.timestamp;
         if(nowDate >= (_transactions[_tokenId].timestamp + 1 weeks)) {
             cancelCarPurchase(_tokenId);
-            emit approvalOverdue(block.timestamp, _tokenId, msg.sender);
         }
         else {
         // 클레이와 NFT 정산
@@ -239,7 +242,14 @@ contract CarNFT_Trade is CarNFT{
         }
     }
 
-    // received 구현
+    function onKIP17Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external pure override returns (bytes4){
+        return this.onKIP17Received.selector;
+    }
 
     
 }
