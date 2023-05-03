@@ -117,7 +117,6 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         uint _price,          
         uint _mileage        
     ) public mintedNFT(_tokenId) onlyNFTOwner(_tokenId){
-
         // CA에게 차량 approve
         approve(address(this), _tokenId);
         _transactions[_tokenId].seller = msg.sender;
@@ -149,7 +148,6 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
      * sellCar()를 호출해서 CA로 전송했으면 취소 불가!!
      */
     function cancelCarSale(uint _tokenId) public onlyNFTOwner(_tokenId) registeredForSale(_tokenId) {
-
         // CA의 NFT approve 취소 
         _approve(address(0), _tokenId);
         // 등록했던 Detail과 Transaction 삭제
@@ -194,7 +192,6 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         _transactions[_tokenId].state = Status.Reserved;
         _transactions[_tokenId].timestamp = block.timestamp;
 
-
         emit requestBuying(block.timestamp, _tokenId, msg.sender);
     }
 
@@ -204,7 +201,6 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         safeTransferFrom(_transactions[_tokenId].seller, address(this), _tokenId);
         _transactions[_tokenId].state = Status.Sended;
         _transactions[_tokenId].timestamp = block.timestamp;
-
         
         emit approveBuying(block.timestamp, _tokenId, msg.sender);
     }
@@ -220,6 +216,11 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
             cancelCarPurchase(_tokenId);
         }
         else {
+        completeTransaction(_tokenId);
+        }
+    }
+
+    function completeTransaction(uint _tokenId) private {
         // 클레이와 NFT 정산
         (bool success, ) = payable(_transactions[_tokenId].seller).call{value: _transactions[_tokenId].price}("");
         require(success, "Failed to send KLAY to buyer");
@@ -230,16 +231,18 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         _transactions[_tokenId].timestamp = block.timestamp;
         _prevTransactions[_tokenId].push(_transactions[_tokenId]);
 
-        emit transactionCompleted(block.timestamp, _tokenId, _transactions[_tokenId].seller, _transactions[_tokenId].buyer);
-        
         /*
         nft-generator의 매핑 바꿔주는 로직 들어갈 자리
         */
 
+        address seller = _transactions[_tokenId].seller;
+        address buyer = _transactions[_tokenId].buyer;
+
         // Detail과 Transation 삭제
         delete _carDetails[_tokenId];
         delete _transactions[_tokenId];
-        }
+
+        emit transactionCompleted(block.timestamp, _tokenId, _transactions[_tokenId].seller, _transactions[_tokenId].buyer);
     }
 
     function onKIP17Received(
