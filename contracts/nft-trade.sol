@@ -171,7 +171,9 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
      * 판매를 취소하는 함수
      * sellCar()를 호출해서 CA로 전송했으면 취소 불가!!
      */
-    function cancelCarSale(uint _tokenId) public onlyNFTOwner(_tokenId) registeredForSale(_tokenId) {
+    function cancelCarSale(uint _tokenId) public registeredForSale(_tokenId) {
+        require(msg.sender == _transactions[_tokenId].seller, "Only the seller can cancel the sale");
+
         // CA의 NFT approve 취소 
         _approve(address(0), _tokenId);
         // 등록했던 Detail과 Transaction 삭제
@@ -179,6 +181,10 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         delete _transactions[_tokenId];
         // 거래 목록에서 내리기
         popOnSale(_tokenId);
+
+        if(ownerOf(_tokenId) == address(this)){
+            safeTransferFrom(address(this), msg.sender, _tokenId);
+        }
 
         emit cancelSale(block.timestamp, _tokenId, msg.sender);
     }
