@@ -19,6 +19,7 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
     event cancelPurchase(uint timestamp, uint tokenId, address buyer);
     
 
+    uint[] private _CarsOnSale;                                // 현재 거래중인 차량 배열
     mapping(uint => Detail) private _carDetails;               // id-세부정보 매핑
     mapping(uint => Transaction) private _transactions;        // id-현재거래정보 매핑
     mapping(uint => Transaction[]) private _prevTransactions;  // 이전 거래기록 매핑
@@ -82,8 +83,12 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         _;
     }
 
+    // 판매중인 차량의 목록을 조회하는 함수
+    function getCarsOnSale() public view returns (uint[] memory){
+        return _CarsOnSale;
+    }
 
-    // 자동차의 이전 판매기록을 조회하는 함수
+    // 차량의 이전 판매기록을 조회하는 함수
     function getPrevTransactions(uint _tokenId) public view mintedNFT(_tokenId) returns (Transaction[] memory) {
         return _prevTransactions[_tokenId];
     }
@@ -93,7 +98,7 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         return _carDetails[_tokenId];
     }
 
-    // 자동차가 현재 거래진행중인지 체크하는 함수
+    // 차량이 현재 거래진행중인지 체크하는 함수
     function isTrading(uint _tokenId) public view mintedNFT(_tokenId) registeredForSale(_tokenId) returns (bool) {
         return (_transactions[_tokenId].state != Status.Registered);
     }
@@ -133,14 +138,33 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         _carDetails[_tokenId].price = _price;
         _carDetails[_tokenId].mileage = _mileage;
         _carDetails[_tokenId].transferRecord = _prevTransactions[_tokenId];
-
+        
         /*
         _carDetails[_tokenId].performanceRecord = 
         _carDetails[_tokenId].insuranceRecord = 
         _carDetails[_tokenId].transferRecord = 
         */
 
+        // 거래중인 차량 목록에 추가
+        _CarsOnSale.push(_tokenId);
+
         emit registerSale(block.timestamp, _tokenId, msg.sender);
+    }
+
+    function popOnSale(uint _tokenId) private {
+        require(_CarsOnSale.length >= 0, "No cars for sale");
+        uint idx = 0;
+        for(uint i = 0; i < _CarsOnSale.length; i++){
+            if(_CarsOnSale[i] == _tokenId){
+                idx = i;
+                break;
+            }
+        }
+
+        require(_CarsOnSale[idx] == _tokenId, "This car is not for sale");
+
+        _CarsOnSale[idx] = _CarsOnSale[_CarsOnSale.length - 1];
+        _CarsOnSale.pop();
     }
 
     /*
@@ -153,6 +177,8 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         // 등록했던 Detail과 Transaction 삭제
         delete _carDetails[_tokenId];
         delete _transactions[_tokenId];
+        // 거래 목록에서 내리기
+        popOnSale(_tokenId);
 
         emit cancelSale(block.timestamp, _tokenId, msg.sender);
     }
@@ -230,6 +256,9 @@ contract CarNFT_Trade is CarNFT, IKIP17Receiver{
         _transactions[_tokenId].state = Status.Completed;
         _transactions[_tokenId].timestamp = block.timestamp;
         _prevTransactions[_tokenId].push(_transactions[_tokenId]);
+
+        // 판매 목록에서 내리기
+        popOnSale(_tokenId);
 
         /*
         nft-generator의 매핑 바꿔주는 로직 들어갈 자리
