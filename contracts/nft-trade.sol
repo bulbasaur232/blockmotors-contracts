@@ -54,20 +54,17 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         _transactions[_tokenId].timestamp = block.timestamp;
         _prevTransactions[_tokenId].push(_transactions[_tokenId]);
 
-        // 판매 목록에서 내리기
-        _popOnSale(_tokenId);
-
         /*
-        nft-generator의 매핑 바꿔주는 로직 들어갈 자리
+        nft-generator.sol의 매핑 바꿔주는 로직 들어갈 자리
         */
 
-        address seller = _transactions[_tokenId].seller;
-        address buyer = _transactions[_tokenId].buyer;
-
         emit transactionCompleted(block.timestamp, _tokenId, _transactions[_tokenId].seller, _transactions[_tokenId].buyer);
+
+        // 판매 목록에서 내리기
+        _popOnSale(_tokenId);
     }
 
-    /*
+    /**
      * 판매를 취소하는 함수
      */
     function cancelCarSale(uint _tokenId) public registeredForSale(_tokenId) {
@@ -75,8 +72,7 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
 
         // CA의 NFT approve 취소 
         _approve(address(0), _tokenId);
-        // 거래 목록에서 내리기
-        _transactions[_tokenId].state == Status.Canceled;
+        // 판매 목록에서 내리기
         _popOnSale(_tokenId);
 
         if(ownerOf(_tokenId) == address(this)){
@@ -84,7 +80,7 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         }
     }
 
-    /*
+    /**
      * 구매를 취소하는 함수
      * 구매자가 호출 or 구매 승인 기한 지났을 경우 호출
      */
@@ -100,6 +96,26 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         if(ownerOf(_tokenId) == address(this)){
             safeTransferFrom(address(this), _transactions[_tokenId].seller, _tokenId);
         }
+    }
+
+    // 차량을 판매 목록에서 제거하는 함수
+    function _popOnSale(uint _tokenId) private {
+        require(_carsOnSale.length >= 0, "No cars for sale");
+        uint idx = 0;
+        for(uint i = 0; i < _carsOnSale.length; i++){
+            if(_carsOnSale[i] == _tokenId){
+                idx = i;
+                break;
+            }
+        }
+        require(_carsOnSale[idx] == _tokenId, "This car is not for sale");
+
+        _carsOnSale[idx] = _carsOnSale[_carsOnSale.length - 1];
+        _carsOnSale.pop();
+
+        // Detail과 Transation 삭제
+        delete _carDetails[_tokenId];
+        delete _transactions[_tokenId];
     }
 
     function onKIP17Received(

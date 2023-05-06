@@ -11,7 +11,7 @@ contract CarNFT_SaleRegistration is CarNFT{
     event transactionCompleted(uint timestamp, uint tokenId, address seller, address buyer); 
 
     uint[] internal _carsOnSale;                                // 현재 거래중인 차량 배열
-    mapping(uint => Detail) internal  _carDetails;              // id-세부정보 매핑
+    mapping(uint => Detail) internal _carDetails;              // id-세부정보 매핑
     mapping(uint => Transaction) internal _transactions;        // id-현재거래정보 매핑
     mapping(uint => Transaction[]) internal _prevTransactions;  // 이전 거래기록 매핑
 
@@ -58,8 +58,7 @@ contract CarNFT_SaleRegistration is CarNFT{
         Registered,
         Reserved,
         Sended,
-        Completed,
-        Canceled
+        Completed
     }
 
      // NFT로 발행이 된 토큰인지 체크
@@ -144,29 +143,6 @@ contract CarNFT_SaleRegistration is CarNFT{
         _carDetails[_tokenId].performanceRecord = _uri;
     }
 
-    // 차량을 판매 목록에서 제거하는 함수
-    function _popOnSale(uint _tokenId) internal {
-        require(_carsOnSale.length >= 0, "No cars for sale");
-        require((msg.sender == _transactions[_tokenId].buyer && _transactions[_tokenId].state == Status.Completed) ||
-                (msg.sender == _transactions[_tokenId].seller && _transactions[_tokenId].state == Status.Canceled), 
-                "You are not authorized to remove a car from the sales list");
-        uint idx = 0;
-        for(uint i = 0; i < _carsOnSale.length; i++){
-            if(_carsOnSale[i] == _tokenId){
-                idx = i;
-                break;
-            }
-        }
-        require(_carsOnSale[idx] == _tokenId, "This car is not for sale");
-
-        _carsOnSale[idx] = _carsOnSale[_carsOnSale.length - 1];
-        _carsOnSale.pop();
-
-        // Detail과 Transation 삭제
-        delete _carDetails[_tokenId];
-        delete _transactions[_tokenId];
-    }
-
     // 판매중인 차량의 목록을 조회하는 함수
     function getCarsOnSale() public view returns (uint[] memory){
         return _carsOnSale;
@@ -187,7 +163,7 @@ contract CarNFT_SaleRegistration is CarNFT{
         return ((_transactions[_tokenId].state != Status.Registered) && (_transactions[_tokenId].state != Status.Completed));
     }
 
-    /*
+    /**
      * 현재 진행상황을 조회하는 함수 
      * 반환형은 enum이지만 실제로 반환 되는 값은 uint이므로 주의!
      */
