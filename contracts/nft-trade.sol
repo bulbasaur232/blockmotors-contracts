@@ -6,35 +6,30 @@ import "./nft-sale-registration.sol";
 contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
 
     // 구매자가 클레이를 지불하여 구매 요청을 보내는 함수
-    function reserveCar(uint _tokenId) public payable registeredForSale(_tokenId) correctState(_tokenId, Status.Registered) {
+    function reserveCar(uint _tokenId) external payable registeredForSale(_tokenId) correctState(_tokenId, Status.Registered) {
         // 이미 거래중이면 revert
-        require(isTrading(_tokenId) , "This car is currently being traded");
+        require(isTrading(_tokenId) || msg.sender != _transactions[_tokenId].seller , "This car is currently being traded");
         // 보낸 클레이가 가격보다 적으면 revert
         require(msg.value >= _carDetails[_tokenId].price, "Not enough KLAY to buy this car");
-        // 판매자가 구매 요청 보내면 revert
-        require(msg.sender != _transactions[_tokenId].seller, "Seller cannot send purchase requisition");
+        
         (bool success, ) = payable(address(this)).call{value:msg.value}("");
         require(success, "Failed to send KLAY to Contract");
     
         _transactions[_tokenId].buyer = msg.sender;
         _transactions[_tokenId].state = Status.Reserved;
         _transactions[_tokenId].timestamp = block.timestamp;
-
-        emit requestBuying(block.timestamp, _tokenId, msg.sender);
     }
 
     // 판매자가 NFT를 CA로 전송하여 판매 승인하는 함수
-    function sendCar(uint _tokenId) public onlyNFTOwner(_tokenId) registeredForSale(_tokenId) correctState(_tokenId, Status.Reserved) {
+    function sendCar(uint _tokenId) external onlyNFTOwner(_tokenId) registeredForSale(_tokenId) correctState(_tokenId, Status.Reserved) {
         // nft를 판매자가 ca에게 전송
         safeTransferFrom(_transactions[_tokenId].seller, address(this), _tokenId);
         _transactions[_tokenId].state = Status.Sended;
         _transactions[_tokenId].timestamp = block.timestamp;
-        
-        emit approveSelling(block.timestamp, _tokenId, msg.sender);
     }
 
     // 구매자가 최종 구매 승인하는 함수
-    function confirmBuying(uint _tokenId) public registeredForSale(_tokenId) correctState(_tokenId, Status.Sended) {
+    function confirmBuying(uint _tokenId) external registeredForSale(_tokenId) correctState(_tokenId, Status.Sended) {
         // msg.sender가 구매자가 아니면 revert 
         require(msg.sender == _transactions[_tokenId].buyer, "Caller is not the buyer of the car");
 
@@ -44,12 +39,11 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
             cancelCarPurchase(_tokenId);
         }
         else {
-            emit approveBuying(block.timestamp, _tokenId, _transactions[_tokenId].buyer);
-         completeTransaction(_tokenId);
+            _completeTransaction(_tokenId);
         }
     }
 
-    function completeTransaction(uint _tokenId) private {
+    function _completeTransaction(uint _tokenId) private {
         // 클레이와 NFT 정산
         (bool success, ) = payable(_transactions[_tokenId].seller).call{value: _transactions[_tokenId].price}("");
         require(success, "Failed to send KLAY to buyer");
@@ -61,7 +55,7 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         _prevTransactions[_tokenId].push(_transactions[_tokenId]);
 
         // 판매 목록에서 내리기
-        popOnSale(_tokenId);
+        _popOnSale(_tokenId);
 
         /*
         nft-generator의 매핑 바꿔주는 로직 들어갈 자리
@@ -83,13 +77,11 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         _approve(address(0), _tokenId);
         // 거래 목록에서 내리기
         _transactions[_tokenId].state == Status.Canceled;
-        popOnSale(_tokenId);
+        _popOnSale(_tokenId);
 
         if(ownerOf(_tokenId) == address(this)){
             safeTransferFrom(address(this), msg.sender, _tokenId);
         }
-
-        emit cancelSale(block.timestamp, _tokenId, msg.sender);
     }
 
     /*
@@ -108,8 +100,6 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         if(ownerOf(_tokenId) == address(this)){
             safeTransferFrom(address(this), _transactions[_tokenId].seller, _tokenId);
         }
-
-        emit cancelPurchase(block.timestamp, _tokenId, msg.sender);
     }
 
     function onKIP17Received(
@@ -120,6 +110,4 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
     ) external pure override returns (bytes4){
         return this.onKIP17Received.selector;
     }
-
-    
 }

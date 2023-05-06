@@ -5,25 +5,15 @@ import "./nft-generator.sol";
 
 contract CarNFT_SaleRegistration is CarNFT{
 
-    // 1.판매 등록 이벤트
+    // 판매 등록 이벤트
     event registerSale(uint timestamp, uint tokenId, address seller);
-    // 2. 구매 요청 이벤트
-    event requestBuying(uint timestamp, uint tokenId, address buyer);
-    // 3. 판매 승인 이벤트
-    event approveSelling(uint timestamp, uint tokenId, address seller);
-    // 4. 구매 승인 이벤트
-    event approveBuying(uint timeStamp, uint tokenId, address buyer);
-    // 5. 거래 완료 이벤트
+    // 거래 완료 이벤트
     event transactionCompleted(uint timestamp, uint tokenId, address seller, address buyer); 
-    // 6. 판매 취소 이벤트
-    event cancelSale(uint timestamp, uint tokenId, address seller);
-    // 7. 구매 취소 이벤트
-    event cancelPurchase(uint timestamp, uint tokenId, address buyer);
 
-    uint[] private _CarsOnSale;                                // 현재 거래중인 차량 배열
-    mapping(uint => Detail) private _carDetails;               // id-세부정보 매핑
-    mapping(uint => Transaction) private _transactions;        // id-현재거래정보 매핑
-    mapping(uint => Transaction[]) private _prevTransactions;  // 이전 거래기록 매핑
+    uint[] internal _CarsOnSale;                                // 현재 거래중인 차량 배열
+    mapping(uint => Detail) internal  _carDetails;               // id-세부정보 매핑
+    mapping(uint => Transaction) internal _transactions;        // id-현재거래정보 매핑
+    mapping(uint => Transaction[]) internal _prevTransactions;  // 이전 거래기록 매핑
 
     // 판매 차량 세부 정보 데이터폼
     struct Detail {
@@ -36,10 +26,8 @@ contract CarNFT_SaleRegistration is CarNFT{
         uint price;                       // 가격
         uint mileage;                     // 주행거리
         Transaction[] transferRecord;     // 이전거래내역
-
-        // 차량 등록 후 직접 가져올 데이터들
         string performanceRecord;         // 성능점검기록부
-        string insuranceRecord;           // 보험이력
+        Insurance insuranceRecord;        // 보험이력
     }
 
     // 거래 정보 데이터폼
@@ -49,6 +37,20 @@ contract CarNFT_SaleRegistration is CarNFT{
         address buyer;
         uint price;
         Status state;
+    }
+
+    // 보험이력 데이터폼
+    struct Insurance {
+        uint totalLoss;      // 전손 몇회
+        uint theft;          // 도난 몇회
+        uint flood;          // 침수 몇회
+        uint repurpose ;     // 용도변경이력
+        uint changeOwner;    // 소유자변경이력
+        uint changeNumber;   // 차랑변호변경이력
+        uint myDamage;       // 내차 피해 횟수
+        uint oppoDamage;     // 상대차 피해 횟수
+        uint myAmmount;      // 내차 총 피해액
+        uint oppoAmmount;    // 상대차 총 피해액
     }
 
     // 거래 진행 상황 enum
@@ -86,22 +88,22 @@ contract CarNFT_SaleRegistration is CarNFT{
 
     // 판매할 자동차를 등록하는 함수
     function registerCarSale(
-        uint _tokenId,
-        string memory _userName,
-        string memory _userAddress,  
-        string memory _userContact,  
-        string memory _region,       
-        string memory _warranty,     
-        uint _price,          
-        uint _mileage        
-    ) public mintedNFT(_tokenId) onlyNFTOwner(_tokenId){
-        // CA에게 차량 approve
+        uint _tokenId,               // 차량 id
+        string memory _userName,     // 판매자 이름
+        string memory _userAddress,  // 판매자 주소
+        string memory _userContact,  // 판매자 연락처
+        string memory _region,       // 판매 지역
+        string memory _warranty,     // 보증기간 
+        uint _price,                 // 가격
+        uint _mileage                // 주행거리       
+    ) external mintedNFT(_tokenId) onlyNFTOwner(_tokenId){
         approve(address(this), _tokenId);
         _transactions[_tokenId].seller = msg.sender;
         _transactions[_tokenId].price = _price;
         _transactions[_tokenId].state = Status.Registered;
         _transactions[_tokenId].timestamp = block.timestamp;
 
+        /*---------------------세부정보----------------------*/
         _carDetails[_tokenId].registDate = block.timestamp;
         _carDetails[_tokenId].userName = _userName;
         _carDetails[_tokenId].userAddress = _userAddress;
@@ -110,22 +112,35 @@ contract CarNFT_SaleRegistration is CarNFT{
         _carDetails[_tokenId].warranty = _warranty;
         _carDetails[_tokenId].price = _price;
         _carDetails[_tokenId].mileage = _mileage;
+        /*--------------------거래,정비이력--------------------*/
         _carDetails[_tokenId].transferRecord = _prevTransactions[_tokenId];
-        
-        /*
-        _carDetails[_tokenId].performanceRecord = 
-        _carDetails[_tokenId].insuranceRecord = 
-        _carDetails[_tokenId].transferRecord = 
-        */
+
 
         // 거래중인 차량 목록에 추가
         _CarsOnSale.push(_tokenId);
-
         emit registerSale(block.timestamp, _tokenId, msg.sender);
     }
 
+    // 보험이력을 등록하는 함수
+    function registerInsurance(
+        uint _tokenId,
+        uint _totalLoss,             // 전손 몇회
+        uint _theft,                 // 도난 몇회
+        uint _flood,                 // 침수 몇회
+        uint _repurpose,             // 용도변경이력
+        uint _changeOwner,           // 소유자변경이력
+        uint _changeNumber,          // 차랑변호변경이력
+        uint _myDamage,              // 내차 피해 횟수
+        uint _oppoDamage,            // 상대차 피해 횟수
+        uint _myAmmount,             // 내차 총 피해액
+        uint _oppoAmmount            // 상대차 총 피해액 
+    ) external registeredForSale(_tokenId) onlyNFTOwner(_tokenId) {
+        _carDetails[_tokenId].insuranceRecord = Insurance(_totalLoss, _theft, _flood, _repurpose, 
+        _changeOwner, _changeNumber, _myDamage, _oppoDamage, _myAmmount, _oppoAmmount);
+    }
+
     // 차량을 판매 목록에서 제거하는 함수
-    function popOnSale(uint _tokenId) internal {
+    function _popOnSale(uint _tokenId) internal {
         require(_CarsOnSale.length >= 0, "No cars for sale");
         require((msg.sender == _transactions[_tokenId].buyer && _transactions[_tokenId].state == Status.Completed) ||
                 (msg.sender == _transactions[_tokenId].seller && _transactions[_tokenId].state == Status.Canceled), 
