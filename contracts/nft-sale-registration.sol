@@ -10,8 +10,8 @@ contract CarNFT_SaleRegistration is CarNFT{
     // 거래 완료 이벤트
     event transactionCompleted(uint timestamp, uint tokenId, address seller, address buyer); 
 
-    uint[] internal _CarsOnSale;                                // 현재 거래중인 차량 배열
-    mapping(uint => Detail) internal  _carDetails;               // id-세부정보 매핑
+    uint[] internal _carsOnSale;                                // 현재 거래중인 차량 배열
+    mapping(uint => Detail) internal  _carDetails;              // id-세부정보 매핑
     mapping(uint => Transaction) internal _transactions;        // id-현재거래정보 매핑
     mapping(uint => Transaction[]) internal _prevTransactions;  // 이전 거래기록 매핑
 
@@ -117,7 +117,7 @@ contract CarNFT_SaleRegistration is CarNFT{
 
 
         // 거래중인 차량 목록에 추가
-        _CarsOnSale.push(_tokenId);
+        _carsOnSale.push(_tokenId);
         emit registerSale(block.timestamp, _tokenId, msg.sender);
     }
 
@@ -146,21 +146,21 @@ contract CarNFT_SaleRegistration is CarNFT{
 
     // 차량을 판매 목록에서 제거하는 함수
     function _popOnSale(uint _tokenId) internal {
-        require(_CarsOnSale.length >= 0, "No cars for sale");
+        require(_carsOnSale.length >= 0, "No cars for sale");
         require((msg.sender == _transactions[_tokenId].buyer && _transactions[_tokenId].state == Status.Completed) ||
                 (msg.sender == _transactions[_tokenId].seller && _transactions[_tokenId].state == Status.Canceled), 
                 "You are not authorized to remove a car from the sales list");
         uint idx = 0;
-        for(uint i = 0; i < _CarsOnSale.length; i++){
-            if(_CarsOnSale[i] == _tokenId){
+        for(uint i = 0; i < _carsOnSale.length; i++){
+            if(_carsOnSale[i] == _tokenId){
                 idx = i;
                 break;
             }
         }
-        require(_CarsOnSale[idx] == _tokenId, "This car is not for sale");
+        require(_carsOnSale[idx] == _tokenId, "This car is not for sale");
 
-        _CarsOnSale[idx] = _CarsOnSale[_CarsOnSale.length - 1];
-        _CarsOnSale.pop();
+        _carsOnSale[idx] = _carsOnSale[_carsOnSale.length - 1];
+        _carsOnSale.pop();
 
         // Detail과 Transation 삭제
         delete _carDetails[_tokenId];
@@ -169,7 +169,7 @@ contract CarNFT_SaleRegistration is CarNFT{
 
     // 판매중인 차량의 목록을 조회하는 함수
     function getCarsOnSale() public view returns (uint[] memory){
-        return _CarsOnSale;
+        return _carsOnSale;
     }
 
     // 차량의 이전 판매기록을 조회하는 함수
