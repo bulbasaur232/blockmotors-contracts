@@ -26,8 +26,8 @@ contract CarNFT_SaleRegistration is CarNFT{
         uint price;                       // 가격
         uint mileage;                     // 주행거리
         Transaction[] transferRecord;     // 이전거래내역
-        string performanceRecord;         // 성능점검기록부
         Insurance insuranceRecord;        // 보험이력
+        string performanceRecord;         // 성능점검기록부
     }
 
     // 거래 정보 데이터폼
@@ -103,7 +103,7 @@ contract CarNFT_SaleRegistration is CarNFT{
         _transactions[_tokenId].state = Status.Registered;
         _transactions[_tokenId].timestamp = block.timestamp;
 
-        /*---------------------세부정보----------------------*/
+        /*--------------------세부정보--------------------*/
         _carDetails[_tokenId].registDate = block.timestamp;
         _carDetails[_tokenId].userName = _userName;
         _carDetails[_tokenId].userAddress = _userAddress;
@@ -112,7 +112,7 @@ contract CarNFT_SaleRegistration is CarNFT{
         _carDetails[_tokenId].warranty = _warranty;
         _carDetails[_tokenId].price = _price;
         _carDetails[_tokenId].mileage = _mileage;
-        /*--------------------거래,정비이력--------------------*/
+        /*--------------------거래이력--------------------*/
         _carDetails[_tokenId].transferRecord = _prevTransactions[_tokenId];
 
 
@@ -137,6 +137,11 @@ contract CarNFT_SaleRegistration is CarNFT{
     ) external registeredForSale(_tokenId) onlyNFTOwner(_tokenId) {
         _carDetails[_tokenId].insuranceRecord = Insurance(_totalLoss, _theft, _flood, _repurpose, 
         _changeOwner, _changeNumber, _myDamage, _oppoDamage, _myAmmount, _oppoAmmount);
+    }
+
+    // 성능점검기록부 URI를 등록하는 함수
+    function registerPerformance(uint _tokenId, string memory _uri) external registeredForSale(_tokenId) onlyNFTOwner(_tokenId) {
+        _carDetails[_tokenId].performanceRecord = _uri;
     }
 
     // 차량을 판매 목록에서 제거하는 함수
