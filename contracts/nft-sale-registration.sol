@@ -25,6 +25,7 @@ contract CarNFT_SaleRegistration is CarNFT{
         string warranty;                  // 보증기간
         uint price;                       // 가격
         uint mileage;                     // 주행거리
+
         Transaction[] transferRecord;     // 이전거래내역
         Insurance insuranceRecord;        // 보험이력
         string performanceRecord;         // 성능점검기록부
@@ -39,7 +40,10 @@ contract CarNFT_SaleRegistration is CarNFT{
         Status state;
     }
 
-    // 보험이력 데이터폼
+    /**
+    * 보험이력 데이터폼
+    * https://t1.daumcdn.net/cfile/tistory/227A2E3A58FD75B838 참고함
+    */
     struct Insurance {
         uint totalLoss;      // 전손 몇회
         uint theft;          // 도난 몇회
@@ -94,7 +98,9 @@ contract CarNFT_SaleRegistration is CarNFT{
         string memory _region,       // 판매 지역
         string memory _warranty,     // 보증기간 
         uint _price,                 // 가격
-        uint _mileage                // 주행거리       
+        uint _mileage,               // 주행거리       
+        Insurance memory _insurance  // 보험기록
+        // String memory _performUri
     ) external mintedNFT(_tokenId) onlyNFTOwner(_tokenId){
         approve(address(this), _tokenId);
         _transactions[_tokenId].seller = msg.sender;
@@ -111,36 +117,14 @@ contract CarNFT_SaleRegistration is CarNFT{
         _carDetails[_tokenId].warranty = _warranty;
         _carDetails[_tokenId].price = _price;
         _carDetails[_tokenId].mileage = _mileage;
-        /*--------------------거래이력--------------------*/
+        /*--------------------거래이력, 보험이력, 성능점검--------------------*/
         _carDetails[_tokenId].transferRecord = _prevTransactions[_tokenId];
-
+        _carDetails[_tokenId].insuranceRecord = _insurance;
+        // _carDetails[_tokenId].performanceRecord = _performUri;
 
         // 거래중인 차량 목록에 추가
         _carsOnSale.push(_tokenId);
         emit registerSale(block.timestamp, _tokenId, msg.sender);
-    }
-
-    // 보험이력을 등록하는 함수
-    function registerInsurance(
-        uint _tokenId,
-        uint _totalLoss,             // 전손 몇회
-        uint _theft,                 // 도난 몇회
-        uint _flood,                 // 침수 몇회
-        uint _repurpose,             // 용도변경이력
-        uint _changeOwner,           // 소유자변경이력
-        uint _changeNumber,          // 차랑변호변경이력
-        uint _myDamage,              // 내차 피해 횟수
-        uint _oppoDamage,            // 상대차 피해 횟수
-        uint _myAmmount,             // 내차 총 피해액
-        uint _oppoAmmount            // 상대차 총 피해액 
-    ) external registeredForSale(_tokenId) onlyNFTOwner(_tokenId) {
-        _carDetails[_tokenId].insuranceRecord = Insurance(_totalLoss, _theft, _flood, _repurpose, 
-        _changeOwner, _changeNumber, _myDamage, _oppoDamage, _myAmmount, _oppoAmmount);
-    }
-
-    // 성능점검기록부 URI를 등록하는 함수
-    function registerPerformance(uint _tokenId, string memory _uri) external registeredForSale(_tokenId) onlyNFTOwner(_tokenId) {
-        _carDetails[_tokenId].performanceRecord = _uri;
     }
 
     // 판매중인 차량의 목록을 조회하는 함수
