@@ -220,7 +220,7 @@ contract CarNFT_Generate is KIP17, KIP17URIStorage, Ownable {
     /*
     remapTokenId() : 거래완료 후 사용자가 소유한 토큰Id목록 변경
     */
-    function remapTokenId(address from, address to, uint256 tokenId) internal onlyOwner {
+    function remapTokenId(address from, address to, uint256 tokenId) internal {
         removeTokenIdFrom(from, tokenId);
         addTokenIdTo(to, tokenId);
     }
