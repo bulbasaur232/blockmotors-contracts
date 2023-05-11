@@ -99,7 +99,7 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
 
     // 차량을 판매 목록에서 제거하는 함수
     function _popOnSale(uint _tokenId) private {
-        require(_carsOnSale.length >= 0, "No cars for sale");
+        require(_carsOnSale.length > 0, "No cars for sale");
         uint idx = 0;
         for(uint i = 0; i < _carsOnSale.length; i++){
             if(_carsOnSale[i] == _tokenId){
