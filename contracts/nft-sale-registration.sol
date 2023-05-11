@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./nft-generator.sol";
 
-contract CarNFT_SaleRegistration is CarNFT{
+contract CarNFT_SaleRegistration is CarNFT_Generate{
 
     // 판매 등록 이벤트
     event registerSale(uint timestamp, uint tokenId, address seller);
@@ -11,7 +11,7 @@ contract CarNFT_SaleRegistration is CarNFT{
     event transactionCompleted(uint timestamp, uint tokenId, address seller, address buyer); 
 
     uint[] internal _carsOnSale;                                // 현재 거래중인 차량 배열
-    mapping(uint => Detail) internal _carDetails;              // id-세부정보 매핑
+    mapping(uint => Detail) internal _carDetails;               // id-세부정보 매핑
     mapping(uint => Transaction) internal _transactions;        // id-현재거래정보 매핑
     mapping(uint => Transaction[]) internal _prevTransactions;  // 이전 거래기록 매핑
 
@@ -77,6 +77,12 @@ contract CarNFT_SaleRegistration is CarNFT{
         _;
     }
 
+    // 판매 등록이 안된 NFT인지 체크
+    modifier notRegisteredForSale(uint _tokenId) {
+        require(_transactions[_tokenId].seller == address(0), "This car is already registered for sale");
+        _;
+    }
+
     // 차량 주인이 호출한 것인지 체크
     modifier onlyNFTOwner(uint _tokenId) {
         require(msg.sender == ownerOf(_tokenId), "Only NFT owner can call this function");
@@ -101,7 +107,7 @@ contract CarNFT_SaleRegistration is CarNFT{
         uint _mileage,               // 주행거리       
         Insurance memory _insurance  // 보험기록
         // String memory _performUri
-    ) external mintedNFT(_tokenId) onlyNFTOwner(_tokenId){
+    ) external mintedNFT(_tokenId) notRegisteredForSale(_tokenId) onlyNFTOwner(_tokenId) {
         approve(address(this), _tokenId);
         _transactions[_tokenId].seller = msg.sender;
         _transactions[_tokenId].price = _price;
