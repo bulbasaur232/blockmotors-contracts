@@ -125,4 +125,12 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
     ) external pure override returns (bytes4){
         return this.onKIP17Received.selector;
     }
+    
+    receive() external payable {
+
+    }
+
+    fallback() external payable {
+
+    }
 }
