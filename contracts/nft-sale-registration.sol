@@ -61,7 +61,7 @@ contract CarNFT_SaleRegistration is CarNFT_Generate{
     enum Status {
         Registered,
         Reserved,
-        Sended,
+        Approved,
         Completed
     }
 
@@ -108,7 +108,6 @@ contract CarNFT_SaleRegistration is CarNFT_Generate{
         Insurance memory _insurance  // 보험기록
         // String memory _performUri
     ) external mintedNFT(_tokenId) notRegisteredForSale(_tokenId) onlyNFTOwner(_tokenId) {
-        approve(address(this), _tokenId);
         _transactions[_tokenId].seller = msg.sender;
         _transactions[_tokenId].price = _price;
         _transactions[_tokenId].state = Status.Registered;

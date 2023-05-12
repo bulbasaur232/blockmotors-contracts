@@ -20,16 +20,15 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         _transactions[_tokenId].timestamp = block.timestamp;
     }
 
-    // 판매자가 NFT를 CA로 전송하여 판매 승인하는 함수
-    function sendCar(uint _tokenId) external onlyNFTOwner(_tokenId) registeredForSale(_tokenId) correctState(_tokenId, Status.Reserved) {
-        // nft를 판매자가 ca에게 전송
-        safeTransferFrom(_transactions[_tokenId].seller, address(this), _tokenId);
-        _transactions[_tokenId].state = Status.Sended;
-        _transactions[_tokenId].timestamp = block.timestamp;
+    // 판매자가 NFT 판매 승인하는 함수
+    function confirmSelling(uint _tokenId) external onlyNFTOwner(_tokenId) registeredForSale(_tokenId) correctState(_tokenId, Status.Reserved) {
+        // NFT를 구매자에게 approve
+        approve(_transactions[_tokenId].buyer, _tokenId);
+        _transactions[_tokenId].state = Status.Approved;
     }
 
     // 구매자가 최종 구매 승인하는 함수
-    function confirmBuying(uint _tokenId) external registeredForSale(_tokenId) correctState(_tokenId, Status.Sended) {
+    function confirmBuying(uint _tokenId) external registeredForSale(_tokenId) correctState(_tokenId, Status.Approved) {
         // msg.sender가 구매자가 아니면 revert 
         require(msg.sender == _transactions[_tokenId].buyer, "Caller is not the buyer of the car");
 
@@ -44,18 +43,15 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
     }
 
     function _completeTransaction(uint _tokenId) private {
-        // 클레이와 NFT 정산
-        (bool success, ) = payable(_transactions[_tokenId].seller).call{value: _transactions[_tokenId].price}("");
-        require(success, "Failed to send KLAY to buyer");
-        safeTransferFrom(address(this), _transactions[_tokenId].buyer, _tokenId);
-
         // 트랜잭션들 정보수정
         _transactions[_tokenId].state = Status.Completed;
         _transactions[_tokenId].timestamp = block.timestamp;
         _prevTransactions[_tokenId].push(_transactions[_tokenId]);
         
-        // nft-generator.sol의 주소-차량id 매핑수정
-        remapTokenId(_transactions[_tokenId].seller, _transactions[_tokenId].buyer, _tokenId);
+        // 클레이와 NFT 정산
+        (bool success, ) = payable(_transactions[_tokenId].seller).call{value: _transactions[_tokenId].price}("");
+        require(success, "Failed to send KLAY to buyer");
+        safeTransferFrom(_transactions[_tokenId].seller, _transactions[_tokenId].buyer, _tokenId);
         
         emit transactionCompleted(block.timestamp, _tokenId, _transactions[_tokenId].seller, _transactions[_tokenId].buyer);
 
@@ -69,9 +65,7 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
     function cancelCarSale(uint _tokenId) public registeredForSale(_tokenId) {
         require(msg.sender == _transactions[_tokenId].seller, "Only the seller can cancel the sale");
 
-        // CA의 NFT approve 취소 
-        _approve(address(0), _tokenId);
-        // KLAY와 NFT 환불
+        // KLAY 환불
         _refund(_tokenId);
         // 판매 목록에서 내리기
         _popOnSale(_tokenId);
@@ -85,7 +79,7 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         require(isTrading(_tokenId), "This car is not trading.");
         require(msg.sender == _transactions[_tokenId].buyer, "The caller is not the buyer.");
 
-        // KLAY와 NFT 환불
+        // KLAY 환불
         _refund(_tokenId);
         // 차량의 상태를 Registered로 바꿈
         _transactions[_tokenId].timestamp = _carDetails[_tokenId].registDate;
@@ -101,10 +95,6 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         if(isTrading(_tokenId)){
             (bool success, ) = payable(_transactions[_tokenId].buyer).call{value: _transactions[_tokenId].price}("");
             require(success, "Failed to send KLAY to buyer");
-        }
-
-        if(ownerOf(_tokenId) == address(this)){
-            safeTransferFrom(address(this), _transactions[_tokenId].seller, _tokenId);
         }
     }
 
@@ -133,8 +123,54 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         address from,
         uint256 tokenId,
         bytes calldata data
-    ) external pure override returns (bytes4){
+    ) external pure override(IKIP17Receiver) returns (bytes4) {
         return this.onKIP17Received.selector;
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override(KIP17) {
+        //solhint-disable-next-line max-line-length
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "KIP17: transfer caller is not owner nor approved");
+        require(_isTransferable(tokenId), "Car in trade cannot be transferred");
+        _transfer(from, to, tokenId);
+        remapTokenId(from, to, tokenId);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override(KIP17) {
+        require(_isTransferable(tokenId), "Car in trade cannot be transferred");
+        safeTransferFrom(from, to, tokenId, "");
+        remapTokenId(from, to, tokenId);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) public override(KIP17) {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "KIP17: transfer caller is not owner nor approved");
+        require(_isTransferable(tokenId), "Car in trade cannot be transferred");
+        _safeTransfer(from, to, tokenId, _data);
+        remapTokenId(from, to, tokenId);
+    }
+
+    function _isTransferable(uint _tokenId) private view returns (bool) {
+        if(_transactions[_tokenId].seller != address(0)){
+            return true;
+        }
+        else if(address(msg.sender) == _transactions[_tokenId].buyer || _transactions[_tokenId].state == Status.Completed){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
     
     receive() external payable {
