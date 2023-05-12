@@ -71,12 +71,10 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
 
         // CA의 NFT approve 취소 
         _approve(address(0), _tokenId);
+        // KLAY와 NFT 환불
+        _refund(_tokenId);
         // 판매 목록에서 내리기
         _popOnSale(_tokenId);
-
-        if(ownerOf(_tokenId) == address(this)){
-            safeTransferFrom(address(this), msg.sender, _tokenId);
-        }
     }
 
     /**
@@ -87,10 +85,23 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         require(isTrading(_tokenId), "This car is not trading.");
         require(msg.sender == _transactions[_tokenId].buyer, "The caller is not the buyer.");
 
+        // KLAY와 NFT 환불
+        _refund(_tokenId);
         // 차량의 상태를 Registered로 바꿈
         _transactions[_tokenId].timestamp = _carDetails[_tokenId].registDate;
         _transactions[_tokenId].buyer = address(0);
         _transactions[_tokenId].state = Status.Registered;
+    }
+
+    /**
+    * 거래 취소 시 KLAY와 NFT를 돌려주는 함수
+    */
+    function _refund(uint _tokenId) private {
+        // 구매자에게 KLAY 환불
+        if(isTrading(_tokenId)){
+            (bool success, ) = payable(_transactions[_tokenId].buyer).call{value: _transactions[_tokenId].price}("");
+            require(success, "Failed to send KLAY to buyer");
+        }
 
         if(ownerOf(_tokenId) == address(this)){
             safeTransferFrom(address(this), _transactions[_tokenId].seller, _tokenId);
