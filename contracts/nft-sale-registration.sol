@@ -143,8 +143,8 @@ contract CarNFT_SaleRegistration is CarNFT_Generate{
             if(_carsOnSale[i] == _tokenId){
                 return true;
             }
-            return false;
         }
+        return false;
     }
 
     // 차량의 이전 판매기록을 조회하는 함수
