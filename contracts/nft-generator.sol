@@ -30,6 +30,12 @@ contract CarNFT_Generate is KIP17, KIP17URIStorage, Ownable {
         uint32 inspectDate;     // 검사유효기간
     }
 
+    string private _defaultImageURI = "https://gateway.pinata.cloud/ipfs/QmacnV7iSpZkpvzbR3orPBPpmeX9CCzsURAaxLLZMKWktY";
+    string private _TokenImageURI_1 = "https://gateway.pinata.cloud/ipfs/QmbAbnkA7zzMayRZsvtvHnBkzBt1Lvrx2ftFRGy18Gr9wr";
+    string private _TokenImageURI_2 = "https://gateway.pinata.cloud/ipfs/QmcF3oHK85DCkCihHSbE9hd1Sxk9mH6TKex9ZKLgC8Atjj";
+    string private _TokenImageURI_3 = "https://gateway.pinata.cloud/ipfs/QmW5AribqfjjGcAbUHEnQrMSTnbw6gxfwJMaVob32HuXWN";
+    string private _TokenImageURI_4 = "https://gateway.pinata.cloud/ipfs/QmWkBA6G8hcqH3RJd5dkxqqoC4suv14wZiNuBnVa9mBYHg";
+
     // // 거래컨트랙트 권한 주소
     // address public tradeContractAddress;
 
@@ -87,7 +93,8 @@ contract CarNFT_Generate is KIP17, KIP17URIStorage, Ownable {
     ) public returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         _mint(to, tokenId);
-        _setTokenURI(tokenId, createTokenURI(to, tokenId));
+        _setTokenURI(tokenId, getTokenImageURI(tokenId));        // 차량모델 => 해당차량이미지
+        // _setTokenURI(tokenId, createTokenURI(to, tokenId));
         _tokenIdCounter.increment();
 
         CarData memory tempCarData = setCarData(
@@ -127,6 +134,7 @@ contract CarNFT_Generate is KIP17, KIP17URIStorage, Ownable {
     ) public {
         require(_exists(tokenId), "Token ID does not exist");
         require(msg.sender == ownerOf(tokenId), "Only NFT owner can call this function");
+        _setTokenURI(tokenId, getTokenImageURI(tokenId));        // 차량모델 => 해당차량이미지
 
         CarData memory tempCarData = setCarData(
             make,
@@ -255,13 +263,33 @@ contract CarNFT_Generate is KIP17, KIP17URIStorage, Ownable {
     //     tradeContractAddress = tradeContract;
     // }
 
-    /*
-    createTokenURI() : 토큰 URI 생성
-    */
-    function createTokenURI(address to, uint256 tokenId) private view returns (string memory) {
-        require(_exists(tokenId), "Token ID does not exist");
-        return string(abi.encodePacked(to, Strings.toString(tokenId)));
+    // /*
+    // getTokenImageURI() : 토큰 URI 생성 - 차량모델 => 해당차량이미지
+    // */
+    function getTokenImageURI(uint256 tokenId) private view returns (string memory) {
+        CarData memory tempCarData = _CarData[tokenId];
+        string memory model = tempCarData.model;
+
+        if (keccak256(bytes(model)) == keccak256(bytes("Sonata"))) {
+            return _TokenImageURI_1;
+        } else if (keccak256(bytes(model)) == keccak256(bytes("Santafe"))) {
+            return _TokenImageURI_2;
+        } else if (keccak256(bytes(model)) == keccak256(bytes("K7"))) {
+            return _TokenImageURI_3;
+        } else if (keccak256(bytes(model)) == keccak256(bytes("Morning"))) {
+            return _TokenImageURI_4;
+        } else {
+            return _defaultImageURI;
+        }
     }
+
+    // /*
+    // createTokenURI() : 토큰 URI 생성
+    // */
+    // function createTokenURI(address to, uint256 tokenId) private view returns (string memory) {
+    //     require(_exists(tokenId), "Token ID does not exist");
+    //     return string(abi.encodePacked(to, Strings.toString(tokenId)));
+    // }
 
     /*
     tokenURI() : 토큰Id의 URI 반환 (KIP17URIStorage/Override)
@@ -277,5 +305,4 @@ contract CarNFT_Generate is KIP17, KIP17URIStorage, Ownable {
     function _burn(uint256 tokenId) internal virtual override(KIP17, KIP17URIStorage) {
         KIP17URIStorage._burn(tokenId);
     }
-
 }
