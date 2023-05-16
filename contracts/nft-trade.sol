@@ -28,7 +28,7 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
     }
 
     // 구매자가 최종 구매 승인하는 함수
-    function confirmBuying(uint _tokenId) external registeredForSale(_tokenId) correctState(_tokenId, Status.Approved) {
+    function confirmBuying(uint _tokenId) external registeredForSale(_tokenId) correctState(_tokenId, Status.Approved) returns (bool){
         // msg.sender가 구매자가 아니면 revert 
         require(msg.sender == _transactions[_tokenId].buyer, "Caller is not the buyer of the car");
 
@@ -36,9 +36,11 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         uint nowDate = block.timestamp;
         if(nowDate >= (_transactions[_tokenId].timestamp + 1 weeks)) {
             cancelCarPurchase(_tokenId);
+            return false;
         }
         else {
             _completeTransaction(_tokenId);
+            return true;
         }
     }
 
