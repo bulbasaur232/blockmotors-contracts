@@ -138,7 +138,7 @@ contract CarNFT_SaleRegistration is CarNFT_Generate{
     }
 
     // 차량이 판매등록 되어있는지 조회하는 함수
-    function isRegistered(uint _tokenId) public view returns (bool) {
+    function isRegistered(uint _tokenId) public view mintedNFT(_tokenId) returns (bool) {
         for(uint i = 0; i < _carsOnSale.length; i++){
             if(_carsOnSale[i] == _tokenId){
                 return true;
