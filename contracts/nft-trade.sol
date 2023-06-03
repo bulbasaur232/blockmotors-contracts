@@ -120,6 +120,7 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         delete _transactions[_tokenId];
     }
 
+    
     function onKIP17Received(
         address operator,
         address from,
