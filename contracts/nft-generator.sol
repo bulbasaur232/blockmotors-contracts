@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "https://github.com/klaytn/klaytn-contracts/blob/master/contracts/KIP/token/KIP17/KIP17.sol";
-import "https://github.com/klaytn/klaytn-contracts/blob/master/contracts/access/Ownable.sol";
-import "https://github.com/klaytn/klaytn-contracts/blob/master/contracts/utils/Counters.sol";
-import "https://github.com/klaytn/klaytn-contracts/blob/master/contracts/utils/Strings.sol";
+import "@klaytn/contracts/KIP/token/KIP17/KIP17.sol";
+import "@klaytn/contracts/access/Ownable.sol";
+import "@klaytn/contracts/utils/Counters.sol";
+import "@klaytn/contracts/utils/Strings.sol";
+// import "@klaytn/contracts/KIP/token/KIP17/extensions/KIP17URIStorage.sol";
+
 
 contract CarNFT_Generate is KIP17, Ownable {
     using Counters for Counters.Counter;
