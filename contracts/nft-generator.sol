@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@klaytn/contracts/KIP/token/KIP17/KIP17.sol";
-import "@klaytn/contracts/access/Ownable.sol";
-import "@klaytn/contracts/utils/Counters.sol";
-import "@klaytn/contracts/utils/Strings.sol";
-// import "@klaytn/contracts/KIP/token/KIP17/extensions/KIP17URIStorage.sol";
-
+import "https://github.com/klaytn/klaytn-contracts/blob/master/contracts/KIP/token/KIP17/KIP17.sol";
+import "https://github.com/klaytn/klaytn-contracts/blob/master/contracts/access/Ownable.sol";
+import "https://github.com/klaytn/klaytn-contracts/blob/master/contracts/utils/Counters.sol";
+import "https://github.com/klaytn/klaytn-contracts/blob/master/contracts/utils/Strings.sol";
 
 contract CarNFT_Generate is KIP17, Ownable {
     using Counters for Counters.Counter;
@@ -46,17 +44,26 @@ contract CarNFT_Generate is KIP17, Ownable {
         string URI_Trade;       // 토큰URI(거래용)
     }
 
-    // < BlockMotors_Practice11 >
-    // 그림판, 크기: 약6kb, 사이즈: 1000*800
-    string private _defaultImageURI = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/defaultImageURI.png";
-    string private _Red_Register = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Red_Register.png";
-    string private _Red_Trade = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Red_Trade.png";
-    string private _Pink_Register = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Pink_Register.png";
-    string private _Pink_Trade = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Pink_Trade.png";
-    string private _Blue_Register = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Blue_Register.png";
-    string private _Blue_Trade = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Blue_Trade.png";
-    string private _Green_Register = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Green_Register.png";
-    string private _Green_Trade = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Green_Trade.png";
+    // < BlockMotors_Final >
+    // 크기: 약500kb, 사이즈: 1500*900
+    string private _default_Register = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Red_Register.png";
+    string private _default_Trade = "https://gateway.pinata.cloud/ipfs/QmazJKCgpgzMRcPG9rvyzLHgsWHMFhRXApYquZmAEFifBa/Red_Trade.png";
+    string private _Avante_Register = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Avante_Register.png";
+    string private _Avante_Trade = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Avante_Trade.png";
+    string private _Casper_Register = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Casper_Register.png";
+    string private _Casper_Trade = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Casper_Trade.png";
+    string private _G80_Register = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/G80_Register.png";
+    string private _G80_Trade = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/G80_Trade.png";
+    string private _Grandeur_Register = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Grandeur_Register.png";
+    string private _Grandeur_Trade = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Grandeur_Trade.png";
+    string private _K9_Register = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/K9_Register.png";
+    string private _K9_Trade = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/K9_Trade.png";
+    string private _Mohave_Register = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Mohave_Register.png";
+    string private _Mohave_Trade = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Mohave_Trade.png";
+    string private _Morning_Register = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Morning_Register.png";
+    string private _Morning_Trade = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Morning_Trade.png";
+    string private _Palisade_Register = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Palisade_Register.png";
+    string private _Palisade_Trade = "https://gateway.pinata.cloud/ipfs/QmRkFqvK1EqSUcz3eEtPxsSqJ1sdAAsZLA5RdZTshLdjZy/Palisade_Trade.png";
 
     // // 거래컨트랙트 권한 주소
     // address public tradeContractAddress;
@@ -309,29 +316,41 @@ contract CarNFT_Generate is KIP17, Ownable {
 
     /*
     getTokenImageURI() : 토큰 URI 생성 - 차량모델 => 해당차량이미지
-    < BlockMotors_Practice11 >
-    그림판, 크기: 약6kb, 사이즈: 1,000*800
+    // < BlockMotors_Final >
+    // 크기: 약500kb, 사이즈: 1500*900
     */
     function getTokenImageURI(uint256 tokenId) private view returns (string memory, string memory) {
         string memory model = _CarData[tokenId].model;
         // TokenURI storage tempTokenURI = _TokenURI[tokenId];
         string memory tempTokenURI_Register;
         string memory tempTokenURI_Trade;
-        if (compareModel(model, "Red")) {
-            tempTokenURI_Register = _Red_Register;
-            tempTokenURI_Trade = _Red_Trade;
-        } else if (compareModel(model, "Pink")) {
-            tempTokenURI_Register = _Pink_Register;
-            tempTokenURI_Trade = _Pink_Trade;
-        } else if (compareModel(model, "Blue")) {
-            tempTokenURI_Register = _Blue_Register;
-            tempTokenURI_Trade = _Blue_Trade;
-        } else if (compareModel(model, "Green")) {
-            tempTokenURI_Register = _Green_Register;
-            tempTokenURI_Trade = _Green_Trade;
+        if (compareModel(model, "Avante")) {
+            tempTokenURI_Register = _Avante_Register;
+            tempTokenURI_Trade = _Avante_Trade;
+        } else if (compareModel(model, "Casper")) {
+            tempTokenURI_Register = _Casper_Register;
+            tempTokenURI_Trade = _Casper_Trade;
+        } else if (compareModel(model, "G80")) {
+            tempTokenURI_Register = _G80_Register;
+            tempTokenURI_Trade = _G80_Trade;
+        } else if (compareModel(model, "Grandeur")) {
+            tempTokenURI_Register = _Grandeur_Register;
+            tempTokenURI_Trade = _Grandeur_Trade;
+        } else if (compareModel(model, "K9")) {
+            tempTokenURI_Register = _K9_Register;
+            tempTokenURI_Trade = _K9_Trade;
+        } else if (compareModel(model, "Mohave")) {
+            tempTokenURI_Register = _Mohave_Register;
+            tempTokenURI_Trade = _Mohave_Trade;
+        } else if (compareModel(model, "Morning")) {
+            tempTokenURI_Register = _Morning_Register;
+            tempTokenURI_Trade = _Morning_Trade;
+        } else if (compareModel(model, "Palisade")) {
+            tempTokenURI_Register = _Palisade_Register;
+            tempTokenURI_Trade = _Palisade_Trade;
         } else {
-            tempTokenURI_Register = _defaultImageURI;
-            tempTokenURI_Trade = _defaultImageURI;
+            tempTokenURI_Register = _default_Register;
+            tempTokenURI_Trade = _default_Trade;
         }
         // return (tempTokenURI.URI_Register, tempTokenURI.URI_Trade);
         return (tempTokenURI_Register, tempTokenURI_Trade);
