@@ -9,7 +9,8 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
     * 구매자가 클레이를 지불하여 구매 요청을 보내는 함수
     */
     function reserveCar(uint _tokenId) external payable registeredForSale(_tokenId) correctState(_tokenId, Status.Registered) {
-        require(!isTrading(_tokenId) || msg.sender != _transactions[_tokenId].seller , "This car is currently being traded");
+        require(!isTrading(_tokenId), "This car is currently being traded");
+        require(msg.sender != _transactions[_tokenId].seller, "The buyer cannot make a purchase request.");
         require(msg.value == _carDetails[_tokenId].price, "You must pay the correct price");
         
         /*
