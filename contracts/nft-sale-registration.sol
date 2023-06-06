@@ -33,6 +33,7 @@ contract CarNFT_SaleRegistration is CarNFT_Generate{
 
     // 거래 정보 데이터폼
     struct Transaction {
+        uint tokenId;
         uint timestamp;
         address seller;
         address buyer;
@@ -108,6 +109,7 @@ contract CarNFT_SaleRegistration is CarNFT_Generate{
         Insurance memory _insurance  // 보험기록
         // String memory _performUri
     ) external mintedNFT(_tokenId) notRegisteredForSale(_tokenId) onlyNFTOwner(_tokenId) {
+        _transactions[_tokenId].tokenId = _tokenId;
         _transactions[_tokenId].seller = msg.sender;
         _transactions[_tokenId].price = _price;
         _transactions[_tokenId].state = Status.Registered;
@@ -160,6 +162,16 @@ contract CarNFT_SaleRegistration is CarNFT_Generate{
     // 차량이 현재 거래진행중인지 체크하는 함수
     function isTrading(uint _tokenId) public view mintedNFT(_tokenId) registeredForSale(_tokenId) returns (bool) {
         return ((_transactions[_tokenId].state != Status.Registered) && (_transactions[_tokenId].state != Status.Completed));
+    }
+
+    // 구매자가 자신이 구매요청한 차량의 토큰 id를 반환받는 함수
+    function getReserveCar(address _buyer) public view returns (int) {
+        for(uint i = 0; i < _carsOnSale.length; i++){
+            if(_transactions[_carsOnSale[i]].buyer == _buyer){
+                return (int)(_transactions[_carsOnSale[i]].tokenId);
+            }
+        }
+        return -1;
     }
 
     /**
