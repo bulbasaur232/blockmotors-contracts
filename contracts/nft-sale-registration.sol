@@ -165,13 +165,26 @@ contract CarNFT_SaleRegistration is CarNFT_Generate{
     }
 
     // 구매자가 자신이 구매요청한 차량의 토큰 id를 반환받는 함수
-    function getReserveCar(address _buyer) public view returns (int) {
+    function getReserveCar(address _buyer) public view returns (uint[] memory) {
+        uint[] memory ret = new uint[](getCount(_buyer));
+        uint count = 0;
         for(uint i = 0; i < _carsOnSale.length; i++){
             if(_transactions[_carsOnSale[i]].buyer == _buyer){
-                return (int)(_transactions[_carsOnSale[i]].tokenId);
+                ret[count] = _transactions[_carsOnSale[i]].tokenId;
+                count++;
             }
         }
-        return -1;
+        return ret;
+    }
+
+    function getCount(address adr) private view returns (uint){
+        uint cnt = 0;
+        for(uint i = 0; i < _carsOnSale.length; i++){
+            if(_transactions[_carsOnSale[i]].buyer == adr){
+                cnt++;
+            }
+        }
+        return cnt;
     }
 
     /**
