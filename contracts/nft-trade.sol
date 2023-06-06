@@ -147,7 +147,6 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
     ) public override(KIP17) {
         require(_isTransferable(tokenId), "Car in trade cannot be transferred");
         safeTransferFrom(from, to, tokenId, "");
-        remapTokenId(from, to, tokenId);
     }
 
     function safeTransferFrom(
