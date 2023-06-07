@@ -13,10 +13,10 @@ contract CarNFT_Trade is CarNFT_SaleRegistration, IKIP17Receiver{
         require(msg.sender != _transactions[_tokenId].seller, "The buyer cannot make a purchase request.");
         require(msg.value == _carDetails[_tokenId].price, "You must pay the correct price");
         
-        /*
+        
         (bool success, ) = payable(address(this)).call{value:msg.value}("");
         require(success, "Failed to send KLAY to Contract");
-        */
+        
     
         _transactions[_tokenId].buyer = msg.sender;
         _transactions[_tokenId].state = Status.Reserved;
