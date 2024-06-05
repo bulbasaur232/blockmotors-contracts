@@ -1,11 +1,15 @@
 # 중고차 NFT 거래 플랫폼 - Block Motors
 ![Block Motors](https://github.com/bulbasaur232/blockmotors-contracts/assets/73385666/d3043bf3-64ba-4800-89c2-195b74a2429a)
 
+<br>
+
 ## 팀원 구성
 권오윤 - BE <br>
 오완진 - BE <br>
 정형섭 - FE <br>
-이진희 - FE
+이진희 - FE <br>
+
+<br>
 
 ## 프로젝트 개요
 ![](https://github.com/bulbasaur232/blockmotors-contracts/assets/73385666/10badb8d-702d-4d9c-b182-f4522528b224)|![](https://github.com/bulbasaur232/blockmotors-contracts/assets/73385666/9ebdc96e-566a-429b-b2dc-bda65b18c539)
@@ -22,12 +26,27 @@
 2. 차량 NFT 발행을 통하여 허위매물과 미끼매물의 발생을 방지한다.
 3. 스마트 컨트랙트를 통하여 3자사기 등의 사기를 예방한다.
 
+<br>
+
 ## 기술 스택
-<img width="878" alt="image" src="https://github.com/bulbasaur232/blockmotors-contracts/assets/73385666/9c39762f-ed8b-4b4a-80e3-21232e0f443d">
+<img width="878" alt="image" src="https://github.com/bulbasaur232/blockmotors-contracts/assets/73385666/9c39762f-ed8b-4b4a-80e3-21232e0f443d"><br>
+
+<br>
+
+## API 명세서
+[![GitBook 로고](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqabtt5fa-avq7GKaQ3EUt2TKmCcyt4EX32ZCC9JZMhI9fZJ4WefUmf-xXuDe8l0itGg&usqp=CAU)](https://ohyoons-organization.gitbook.io/blockmotors-api-docs)
+<br>위 이미지를 클릭하시면 스마트 컨트랙트 함수 설명 페이지로 이동합니다.
+
+<br>
 
 ## 시연 영상
 https://github.com/bulbasaur232/blockmotors-contracts/assets/73385666/03fbfeac-d261-403a-8b13-71327a1c9016
 
-## API 명세서
-[![GitBook 로고](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqabtt5fa-avq7GKaQ3EUt2TKmCcyt4EX32ZCC9JZMhI9fZJ4WefUmf-xXuDe8l0itGg&usqp=CAU)](https://ohyoons-organization.gitbook.io/blockmotors-api-docs)
-<br>클릭하시면 컨트랙트 함수 설명 페이지로 이동합니다.
+<br>
+
+## 백서
+<img width="1007" alt="image" src="https://github.com/bulbasaur232/blockmotors-contracts/assets/73385666/10ee4b3c-19f6-4373-a322-5bca5577ca64">
+
+[2023_Multimedia_Design_WP_5.pdf](https://github.com/user-attachments/files/15587998/2023_Multimedia_Design_WP_5.pdf)
+
+
